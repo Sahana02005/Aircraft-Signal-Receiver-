@@ -1,0 +1,30 @@
+import socket
+
+# Dump1090 provides data on port 30003 in SBS/BaseStation format
+HOST = "127.0.0.1"
+PORT = 30003
+
+def main():
+    print("Connecting to Dump1090 on port 30003...")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((HOST, PORT))
+        print("Connected. Listening for aircraft data...\n")
+        
+        while True:
+            data = s.recv(4096)
+            if not data:
+                break
+            lines = data.decode("utf-8", errors="ignore").strip().split("\n")
+            for line in lines:
+                # Each line is a CSV with aircraft info
+                fields = line.split(",")
+                if len(fields) > 10:
+                    callsign = fields[10].strip()
+                    altitude = fields[11].strip()
+                    speed = fields[12].strip()
+                    lat = fields[14].strip()
+                    lon = fields[15].strip()
+                    print(f"Flight {callsign} | Alt: {altitude} ft | Speed: {speed} kt | Pos: {lat}, {lon}")
+
+if __name__ == "__main__":
+    main()
